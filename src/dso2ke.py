@@ -69,7 +69,7 @@ def generate_lut():
     global lu_table
     num = 65536
     lu_table = []
-    for i in xrange(num):
+    for i in range(num):
         pixel888 = [0] * 3
         pixel888[0] = (i >> 8) & 0xf8
         pixel888[1] = (i >> 3) & 0xfc
@@ -191,7 +191,7 @@ class Dso:
                 value = data[index + 1]
                 index += 2
                 bmp_size += length
-                buf = [value for x in xrange(0, length)]
+                buf = [value for x in range(0, length)]
                 raw_data += buf
                 if (index >= l):
                     break
@@ -201,7 +201,7 @@ class Dso:
             index = 0
             rgb_buf = []
             num = width * height
-            for index in xrange(num):
+            for index in range(num):
                 rgb_buf += lu_table[raw_data[index]]
             img_buf = struct.pack("1152000B", *rgb_buf)
             self.im = Image.frombuffer('RGB', (width, height), img_buf, 'raw', 'RGB', 0, 1)
@@ -275,12 +275,12 @@ class Dso:
         if (factor == 1):
             num = self.points_num
             fWave = [0] * num
-            for x in xrange(num):  # Convert 16 bits signed to floating point number.
+            for x in range(num):  # Convert 16 bits signed to floating point number.
                 fWave[x] = float(self.iWave[ch][x]) * dv
         else:  # Reduced to helf points.
             num = self.points_num / factor
             fWave = [0] * num
-            for x in xrange(num):  # Convert 16 bits signed to floating point number.
+            for x in range(num):  # Convert 16 bits signed to floating point number.
                 i = factor * x
                 fWave[x] = float(self.iWave[ch][i]) * dv
         return fWave
@@ -366,17 +366,17 @@ class Dso:
             return 1
         else:  # multi channel, csv file only.
             # write waveform's info to self.info[]
-            for ch in xrange(count):
+            for ch in range(count):
                 self.info[ch].append(info[0])
-            for x in xrange(1, 25):
+            for x in range(1, 25):
                 str = info[x].split(',')
-                for ch in xrange(count):
+                for ch in range(count):
                     self.info[ch].append('%s,%s' % (str[2 * ch], str[2 * ch + 1]))
             str = info[25].split(',')
-            for ch in xrange(count):
+            for ch in range(count):
                 self.info[ch].append('%s' % str[2 * ch])
 
-            for ch in xrange(count):
+            for ch in range(count):
                 self.ch_list.append(info[5].split(',')[2 * ch + 1])
                 self.iWave[ch] = [0] * self.points_num
                 self.vunit[ch] = info[6].split(',')[2 * ch + 1]  # Get vertical units.
@@ -387,20 +387,20 @@ class Dso:
                 self.dt[ch] = float(info[19].split(b',')[2 * ch + 1])  # Get sample period.
             num = self.points_num
             if (self.dataMode == 'Fast'):
-                for ch in xrange(count):
+                for ch in range(count):
                     self.iWave[ch] = [0] * num
-                for i in xrange(num):
+                for i in range(num):
                     str = wave[i].split(',')
-                    for ch in xrange(count):
+                    for ch in range(count):
                         index = 2 * ch
                         self.iWave[ch][i] = int(str[index])
             else:
                 dv = []
-                for ch in xrange(count):
+                for ch in range(count):
                     dv.append(self.vdiv[ch] / 25)
-                for i in xrange(num):
+                for i in range(num):
                     str = wave[i].split(',')
-                    for ch in xrange(count):
+                    for ch in range(count):
                         index = 2 * ch + 1
                         value = float(wave[i].split(',')[index])
                         self.iWave[ch][i] = int(value / dv[ch])
