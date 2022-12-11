@@ -92,6 +92,15 @@ def checkinterface(iport):
     return Com.scanports()  # Scan all the USB port.
 
 
+def show_image():
+    # Turn the ticks off and show image.
+    plt.clf()
+    ax = plt.gca()
+    ax.xaxis.set_visible(False)
+    ax.yaxis.set_visible(False)
+    plt.imshow(dso.im)
+
+
 class Window(QtGui.QWindow):
     def __init__(self, parent=None):
         super(Window, self).__init__(parent)
@@ -172,8 +181,8 @@ class Window(QtGui.QWindow):
         self.pictAction = self.saveMenu.addAction("&As PNG File")
         self.saveBtn.setMenu(self.saveMenu)
         self.saveBtn.setToolTip("Save waveform to CSV file or PNG file.")
-        self.connect(self.csvAction, QtCore.SIGNAL(b"triggered()"), self.savecsvaction)
-        self.connect(self.pictAction, QtCore.SIGNAL(b"triggered()"), self.savePngAction)
+        self.connect(self.csvaction, QtCore.SIGNAL(b"triggered()"), self.savecsvaction)
+        self.connect(self.pictaction, QtCore.SIGNAL(b"triggered()"), self.savePngAction)
         self.loadBtn = QtGui.QPushButton('Load')
         self.loadBtn.setToolTip("Load CHx's raw data from file(*.csv, *.lsf).")
         self.loadBtn.setFixedSize(100, 50)
@@ -378,7 +387,7 @@ class Window(QtGui.QWindow):
                 dso.write(':DISP:PNGOutput?\n')  # Send command to get image from DSO.
             dso.getBlockData()
             dso.ImageDecode(img_type)
-            self.show_image()
+            show_image()
             plt.tight_layout(True)
             self.canvas.draw()
             print('Image is ready!')
@@ -389,14 +398,6 @@ class Window(QtGui.QWindow):
             self.timer.stop()
             self.loadBtn.setEnabled(True)
             self.captureBtn.setText("Capture")
-
-    def show_image(self):
-        # Turn the ticks off and show image.
-        plt.clf()
-        ax = plt.gca()
-        ax.xaxis.set_visible(False)
-        ax.yaxis.set_visible(False)
-        plt.imshow(dso.im)
 
     def draw_wf(self, mode):
         total_chnum = len(dso.ch_list)
