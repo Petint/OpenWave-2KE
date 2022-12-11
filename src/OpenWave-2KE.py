@@ -37,10 +37,10 @@ import matplotlib.pyplot as plt
 import matplotlib as mpl
 mpl.rcParams['backend.qt4'] = 'PySide'  #Used for PySide.
 mpl.rcParams['agg.path.chunksize'] = 100000 #For big data.
-from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
-from matplotlib.backends.backend_qt4agg import NavigationToolbar2QT as NavigationToolbar
+# from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
+# from matplotlib.backends.backend_qt4agg import NavigationToolbar2QT as NavigationToolbar
 from mpl_toolkits.axes_grid1 import host_subplot
-import mpl_toolkits.axisartist as AA
+import mpl_toolkits.axisartist as aa
 from PySide6 import QtCore, QtGui
 import numpy as np
 from PIL import Image
@@ -455,7 +455,7 @@ class Window(QtGui.QWidget):
         p=[]
         for ch in xrange(total_chnum):
             if(ch==0):
-                ax[ch]=host_subplot(111, axes_class=AA.Axes)
+                ax[ch]=host_subplot(111, axes_class=aa.Axes)
                 ax[ch].set_xlabel("Time (sec)")
             else:
                 ax[ch]=ax[0].twinx()
