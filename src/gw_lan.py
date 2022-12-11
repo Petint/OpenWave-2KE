@@ -25,7 +25,7 @@ For details see the copyright notice of the individual package.
 Descriptsocketn:
 gw_lan is a python Ethernet interface module used to connect and read/write data from/to DSO.
 
-Verssocketn: 1.10
+Version: 1.10
 
 Created on JUN 28 2018
 Updated on DEC 11 2022
