@@ -374,14 +374,14 @@ class Window(QtGui.QWidget):
         if(self.typeFlag==True): #Get raw data.
             draw_flag=False
             #Turn on the selected channels.
-            if((self.ch1checkBox.isChecked()==True) and (dso.isChannelOn(1)==False)):
+            if((self.ch1checkBox.isChecked()==True) and (dso.ischannelon(1) == False)):
                 dso.write(":CHAN1:DISP ON\n")           #Set CH1 on.
-            if((self.ch2checkBox.isChecked()==True) and (dso.isChannelOn(2)==False)):
+            if((self.ch2checkBox.isChecked()==True) and (dso.ischannelon(2) == False)):
                 dso.write(":CHAN2:DISP ON\n")           #Set CH2 on.
             if(dso.chnum==4):
-                if((self.ch3checkBox.isChecked()==True) and (dso.isChannelOn(3)==False)):
+                if((self.ch3checkBox.isChecked()==True) and (dso.ischannelon(3) == False)):
                     dso.write(":CHAN3:DISP ON\n")       #Set CH3 on.
-                if((self.ch4checkBox.isChecked()==True) and (dso.isChannelOn(4)==False)):
+                if((self.ch4checkBox.isChecked()==True) and (dso.ischannelon(4) == False)):
                     dso.write(":CHAN4:DISP ON\n")       #Set CH4 on.
             #Get all the selected channel's raw datas.
             if(self.ch1checkBox.isChecked()==True):

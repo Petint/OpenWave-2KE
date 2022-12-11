@@ -67,30 +67,21 @@ def generate_lut():
         lu_table.append(pixel888)
 class Dso:
     def __init__(self, interface):
-        if(os.name=='posix'): #unix
-            if(os.uname()[1]=='raspberrypi'):
+        if os.name=='posix' : #unix
+            if os.uname()[1]=='raspberrypi':
                 self.osname='pi'
             else:
                 self.osname='unix'
         else:
-            if(platform.uname()[2] == 'XP'):
-                self.osname='win'
-            else:
-                os_ver=int(platform.uname()[2])
-                #print 'os_ver=', os_ver
-                #if(os_ver >= 10): 
-                if(os_ver >= 8):  #You might get wrong OS version here(when OpenWave-2KE.exe is running), especially for Win 10.
-                    self.osname='win10'
-                else:
-                    self.osname='win'
-        if(interface != ''):
+            self.osname = f'win {platform.uname()[2]}'
+        if interface != '':
             self.connect(interface)
         else:
-            self.chnum=4
-            self.connection_status=0
-        global inBuffer
+            self.chnum = 4
+            self.connection_status = 0
+        global inbuffer
         self.ver=__version__ #Driver version.
-        self.iWave=[[],[],[],[]]
+        self.iWave=[[], [], [], []]
         self.vdiv=[[], [], [], []]
         self.vunit=[[], [], [], []]
         self.dt=[[], [], [], []]
@@ -122,7 +113,7 @@ class Dso:
         self.closeIO=self.IO.closeIO
         self.write('*IDN?\n')
         model_name=self.read().split(',')[1]
-        print '%s connected to %s successfully!'%(model_name, pname)
+        print('%s connected to %s successfully!'%(model_name, pname))
         if(self.osname=='win10') and ('COM' in pname):
             self.write(':USBDelay ON\n')  #Prevent data loss on Win 10.
             print 'Send :USBDelay ON'
@@ -145,11 +136,11 @@ class Dso:
             f.close()
 
     def getBlockData(self): #Used to get image data.
-        global inBuffer
-        inBuffer=self.readBytes(10)
-        length=len(inBuffer)
-        self.headerlen = 2 + int(inBuffer[1])
-        pkg_length = int(inBuffer[2:self.headerlen]) + self.headerlen + 1 #Block #48000[..8000bytes raw data...]<LF>
+        global inbuffer
+        inbuffer=self.readBytes(10)
+        length=len(inbuffer)
+        self.headerlen = 2 + int(inbuffer[1])
+        pkg_length = int(inbuffer[2:self.headerlen]) + self.headerlen + 1 #Block #48000[..8000bytes raw data...]<LF>
         print "Data transferring...  "
 
         pkg_length=pkg_length-length
@@ -169,14 +160,14 @@ class Dso:
                     self.closeIO()
                     sys.exit(0)
                 num=len(buf)
-                inBuffer+=buf
+                inbuffer+=buf
                 pkg_length=pkg_length-num
 
     def ImageDecode(self, type):
         if(type):  #1 for RLE decode, 0 for PNG decode.
             raw_data=[]
             #Convert 8 bits array to 16 bits array.
-            data = unpack('<%sH' % (len(inBuffer[self.headerlen:-1])/2), inBuffer[self.headerlen:-1])
+            data = unpack('<%sH' % (len(inbuffer[self.headerlen:-1]) / 2), inbuffer[self.headerlen:-1])
             l=len(data)
             if( l%2 != 0):   #Ignore reserved data.
                 l=l-1
@@ -203,13 +194,13 @@ class Dso:
             img_buf=struct.pack("1152000B", *rgb_buf)
             self.im=Image.frombuffer('RGB',(width,height), img_buf, 'raw', 'RGB',0,1)
         else:  #0 for PNG decode.
-            self.im=Image.open(io.BytesIO(inBuffer[self.headerlen:-1]))
+            self.im=Image.open(io.BytesIO(inbuffer[self.headerlen:-1]))
             print 'PngDecode()'
         if(self.osname=='pi'):
             self.im=self.im.transpose(Image.FLIP_TOP_BOTTOM) #For raspberry pi only.
 
     def getRawData(self, header_on,  ch): #Used to get waveform's raw data.
-        global inBuffer
+        global inbuffer
         self.dataMode=[]
         print('Waiting CH%d data... ' % ch)
         if(header_on==True):
@@ -243,9 +234,9 @@ class Dso:
             svunit=[s for s in self.info[index] if "Vertical Units" in s]
             self.vunit[index]=svunit[0].split(',')[1]
         self.getBlockData()
-        self.points_num=len(inBuffer[self.headerlen:-1])/2   #Calculate sample points length.
-        self.iWave[index] = unpack('>%sh' % (len(inBuffer[self.headerlen:-1])/2), inBuffer[self.headerlen:-1])
-        del inBuffer
+        self.points_num= len(inbuffer[self.headerlen:-1]) / 2   #Calculate sample points length.
+        self.iWave[index] = unpack('>%sh' % (len(inbuffer[self.headerlen:-1]) / 2), inbuffer[self.headerlen:-1])
+        del inbuffer
         return index #Return the buffer index.
 
     def checkAcqState(self,  ch):
@@ -341,24 +332,24 @@ class Dso:
             vpos1=self.vpos[0]
             num=self.points_num
             if self.datatype == 'csv':
-                for x in xrange(26):
+                for x in range(26):
                     self.info[0].append(info[x])
-                if(self.dataMode=='Fast'):
-                    for x in xrange(num):
-                        value=int(wave[x].split(',')[0])
+                if self.dataMode=='Fast':
+                    for x in range(num):
+                        value=int(wave[x].split(b',')[0])
                         self.iWave[0][x]=value
                 else:
-                    for x in xrange(num):
-                        value=float(wave[x].split(',')[1])
+                    for x in range(num):
+                        value=float(wave[x].split(b',')[1])
                         self.iWave[0][x]=int(value/dv1)
             else: #lsf file
-                for x in xrange(24):
+                for x in range(24):
                     self.info[0].append(info[x])
                 self.info[0].append('Mode,Fast') #Convert info[] to csv compatible format.
                 self.info[0].append(info[24])
                 self.iWave[0] = np.array(unpack('<%sh' % (len(wave)/2), wave))
-                for x in xrange(num):            #Convert 16 bits signed number to floating point number.
-                    self.iWave[0][x]-=vpos
+                for x in range(num):            #Convert 16 bits signed number to floating point number.
+                    self.iWave[0][x] -= vpos
             del wave
             return 1
         else: #multi channel, csv file only.
@@ -377,10 +368,10 @@ class Dso:
                 self.ch_list.append(info[5].split(',')[2*ch+1])
                 self.iWave[ch]=[0]*self.points_num
                 self.vunit[ch]=info[6].split(',')[2*ch+1] #Get vertical units.
-                self.vdiv[ch] =float(info[12].split(',')[2*ch+1]) #Get vertical scale. => Voltage for ADC's single step.
-                self.vpos[ch] =float(info[13].split(',')[2*ch+1]) #Get vertical position.
-                self.hpos[ch] =float(info[16].split(',')[2*ch+1]) #Get horizontal position.
-                self.dt[ch]   =float(info[19].split(',')[2*ch+1]) #Get sample period.
+                self.vdiv[ch] =float(info[12].split(b',')[2*ch+1]) #Get vertical scale. => Voltage for ADC's single step.
+                self.vpos[ch] =float(info[13].split(b',')[2*ch+1]) #Get vertical position.
+                self.hpos[ch] =float(info[16].split(b',')[2*ch+1]) #Get horizontal position.
+                self.dt[ch]   =float(info[19].split(b',')[2*ch+1]) #Get sample period.
             num=self.points_num
             if(self.dataMode=='Fast'):
                 for ch in xrange(count):
@@ -403,11 +394,11 @@ class Dso:
             del wave
             return count
 
-    def isChannelOn(self, ch):
+    def ischannelon(self, ch):
         self.write(":CHAN%d:DISP?\n" % ch)
-        onoff=self.read()
-        onoff=onoff[:-1]
-        if(onoff=='ON'):
+        onoff = self.read()
+        onoff = onoff[:-1]
+        if onoff == 'ON':
             return True
         else:
             return False
