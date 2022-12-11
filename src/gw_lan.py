@@ -25,11 +25,12 @@ For details see the copyright notice of the individual package.
 Description:
 gw_lan is a python Ethernet interface module used to connect and read/write data from/to DSO.
 
-Version: 1.00
+Version: 1.01
 
 Created on JUN 28 2018
+Updated on DEC 11 2022
 
-Author: Kevin Meng
+Author: Kevin Meng, Petint
 """
 import socket
 

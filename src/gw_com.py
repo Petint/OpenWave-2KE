@@ -25,14 +25,12 @@ For details see the copyright notice of the individual package.
 Description:
 gw_com is a python USB interface module used to connect and read/write data from/to DSO.
 
-Module imported:
-  1. PySerial 2.7
-
-Version: 1.00
+Version: 1.01
 
 Created on JUN 28 2018
+Updated on DEC 11 2022
 
-Author: Kevin Meng
+Author: Kevin Meng, Petint
 """
 import time
 import serial
@@ -40,19 +38,19 @@ from serial.tools import list_ports
 
 usb_id={'2184' : ['003f', '0040', '0041', '0042'], '098f' : ['2204']}  #USB VID/PID
 
-class com:
+class Com:
     def __init__(self, port):
         try:
             self.IO = serial.Serial(port, baudrate=38400, bytesize=8, parity ='N', stopbits=1, xonxoff=False, dsrdtr=False, timeout=5)
-        except serial.SerialException, e:
-            print e.message
-            raise Exception,'__init__(), open port failed!'
+        except serial.SerialException as e:
+            print(e.message)
+            raise Exception('__init__(), open port failed!')
 
-    def write(self, str):
+    def write(self, cmd):
         try:
-            self.IO.write(str)
-        except serial.SerialException, e:
-            print "write(), %s" % e
+            self.IO.write(cmd)
+        except serial.SerialException as e:
+            print("write(), %s" % e)
         
     def read(self):
         try:

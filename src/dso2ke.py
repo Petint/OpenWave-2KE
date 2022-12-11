@@ -25,17 +25,14 @@ For details see the copyright notice of the individual package.
 Description:
 dso2ke is a python driver module used to get waveform and image from DSO.
 
-Module imported:
-  1. PIL 1.1.7
-  2. Numpy 1.8.0
-
-Version: 1.05
+Version: 1.06
 
 Modified on NOV 12 2019
+Updated on DEC 11 2022
 
-Author: Kevin Meng
+Author: Kevin Meng, Petint
 """
-from gw_com import com
+from gw_com import Com
 from gw_lan import lan
 from pillow import Image
 from struct import unpack
@@ -112,7 +109,7 @@ class Dso:
                 return
         elif ('/dev/ttyACM' in pname) or ('COM' in pname):  # Check if str is COM port.
             try:
-                self.IO = com(pname)
+                self.IO = Com(pname)
             except:
                 print('Open COM port failed!')
                 return

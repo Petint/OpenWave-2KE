@@ -26,22 +26,12 @@ OpenWave-2KE use Qt version 4.8 library under the terms of the LGPL version 2.1.
 Description:
 OpenWave-2KE is a python example program used to get waveform and image from DSO.
 
-Environment:
-  1. Python 2.7.9
-  2. dso2ke 1.03
-  3. gw_com 1.00
-  4. gw_lan 1.00
-  5. PySerial 2.7
-  6. Matplotlib 1.3.1
-  7. Numpy 1.8.0
-  8. PySide 1.2.1
-  9. PIL 1.1.7
-
-Version: 1.05
+Version: 1.06
 
 Modified on APR 07 2020
+Updated on DEC 11 2022
 
-Author: Kevin Meng
+Author: Kevin Meng, Petint
 """
 import matplotlib.pyplot as plt
 import matplotlib as mpl
@@ -55,7 +45,7 @@ from PySide6 import QtCore, QtGui
 import numpy as np
 from PIL import Image
 import os, sys, time
-from gw_com import com
+from gw_com import Com
 from gw_lan import lan
 import dso2ke
 
@@ -88,15 +78,15 @@ def checkinterface(interface):
                 return line
     #Check COM port connection(model name not checked)
     elif('COM' in sinterface):
-        if(com.connection_test(sinterface) != ''):
+        if(Com.connection_test(sinterface) != ''):
             return sinterface
     elif('ttyACM' in sinterface):
         if 'ttyACM' == sinterface[0:6]:
             sinterface= '/dev/' + sinterface
-        if(com.connection_test(sinterface) != ''):
+        if(Com.connection_test(sinterface) != ''):
             return sinterface
     
-    return com.scanComPort()  #Scan all the USB port.
+    return Com.scanComPort()  #Scan all the USB port.
 
 class Window(QtGui.QWidget):
     def __init__(self, parent=None):
