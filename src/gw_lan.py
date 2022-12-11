@@ -42,65 +42,65 @@ def isip(string):
         return True
     except ValueError:
         return False
-    
-    
+
+
 class Lan:
     def __init__(self, address: str):
         ip, port = address.split(':')
-        try ipaddress.IPv4Network(ip):
+        if isip(ip):
             self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            self.socket.settimeout(5) #Set timeout
+            self.socket.settimeout(5)  # Set timeout
             try:
                 self.socket.connect((ip, int(port)))
             except socket.error as e:
                 print("__init__(), socket error: %s" % e)
-        except ValueError:
+        else:
             raise socket.error('Invalid IP address')
-    
+
     def write(self, cmd):
         try:
             self.socket.sendall(cmd)
         except socket.error as e:
             print("write(), socket error: %s" % e)
-        
+
     def read(self):
-        line_buf=''
+        line_buf = ''
         while True:
             try:
-                a=self.socket.recv(1)
-            except socket.error, e:
-                print "read(), socket error: %s" % e
+                a = self.socket.recv(1)
+            except socket.error as e:
+                print("Socket error: %s" % e)
                 return line_buf
-            line_buf+=a
-            if(a=='\n'):
+            line_buf += a
+            if a == '\n':
                 return line_buf
-    
-    def readBytes(self, length):
-        str=''
+
+    def readbytes(self, length):
+        sock_bytes = ''
         try:
-            str=self.socket.recv(length)
-        except socket.error, e:
-            print "readBytes(), socket error: %s" % e
-        return str
-    
-    def clearBuf(self):
+            sock_bytes = self.socket.recv(length)
+        except socket.error as e:
+            print("readBytes(), socket error: %s" % e)
+        return sock_bytes
+
+    def clearbuff(self):
         pass
-        
+
     def closesocket(self):
         self.socket.close()
-    
+
     @classmethod
-    def connectsocketn_test(self, str):
-        ip_str=str.split(':')
+    def connectsocketn_test(cls, port):
+        ip_str = port.split(':')
         if isip(ip_str[0]):
             __port = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            __port.settimeout(2) #2 Second Timeout
+            __port.settimeout(2)  # 2 Second Timeout
             try:
                 __port.connect((ip_str[0], int(ip_str[1])))
-            except socket.error, e:
-                print "Socket error: %s" % e
+            except socket.error as e:
+                print("Socket error: %s" % e)
                 return ''
             __port.close()
-            return str
+            return port
         else:
             return ''
