@@ -51,7 +51,7 @@ from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt4agg import NavigationToolbar2QT as NavigationToolbar
 from mpl_toolkits.axes_grid1 import host_subplot
 import mpl_toolkits.axisartist as AA
-from PySide import QtCore, QtGui
+from PySide6 import QtCore, QtGui
 import numpy as np
 from PIL import Image
 import os, sys, time

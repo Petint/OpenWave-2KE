@@ -37,7 +37,7 @@ Author: Kevin Meng
 """
 from gw_com import com
 from gw_lan import lan
-from PIL import Image
+from pillow import Image
 from struct import unpack
 import struct
 import numpy as np
