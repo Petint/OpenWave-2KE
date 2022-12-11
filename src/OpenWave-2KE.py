@@ -26,81 +26,70 @@ OpenWave-2KE use Qt version 4.8 library under the terms of the LGPL version 2.1.
 Description:
 OpenWave-2KE is a python example program used to get waveform and image from DSO.
 
-Environment:
-  1. Python 2.7.9
-  2. dso2ke 1.03
-  3. gw_com 1.00
-  4. gw_lan 1.00
-  5. PySerial 2.7
-  6. Matplotlib 1.3.1
-  7. Numpy 1.8.0
-  8. PySide 1.2.1
-  9. PIL 1.1.7
-
-Version: 1.05
+Version: 1.06
 
 Modified on APR 07 2020
+Updated on DEC 11 2022
 
-Author: Kevin Meng
+Author: Kevin Meng, Petint
 """
+
 import matplotlib.pyplot as plt
 import matplotlib as mpl
-
-mpl.rcParams['backend.qt4'] = 'PySide'  # Used for PySide.
-mpl.rcParams['agg.path.chunksize'] = 100000  # For big data.
-from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
-from matplotlib.backends.backend_qt4agg import NavigationToolbar2QT as NavigationToolbar
+# from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
+# from matplotlib.backends.backend_qt4agg import NavigationToolbar2QT as NavigationToolbar
 from mpl_toolkits.axes_grid1 import host_subplot
 import mpl_toolkits.axisartist as AA
-from PySide import QtCore, QtGui
+from PySide6 import QtCore, QtGui
 import numpy as np
 from PIL import Image
-import os, sys, time
-from gw_com import com
-from gw_lan import lan
+import os
+import sys
+import time
+from gw_com import Com
+from gw_lan import Lan, isip
 import dso2ke
 
-__version__ = "1.05"  # OpenWave-2KE software version.
+__version__ = "1.06"  # OpenWave-2KE software version.
+mpl.rcParams['backend.qt4'] = 'PySide'  # Used for PySide.
+mpl.rcParams['agg.path.chunksize'] = 100000  # For big data.
 
 
-def checkInterface(str):
-    if str != '':
-        print
-        str
+def checkinterface(iport):
+    if iport != '':
+        print(iport)
     # Load config file if it exists
     elif os.path.exists('port.config'):
-        f = open('port.config', 'r')
-        while (1):
-            str = f.readline()
-            if (str == ''):
-                f.close()
-                return ''
-            if (str[0] != '#'):
+        f_conf = open('port.config', 'r')
+        while True:
+            iport = f_conf.readline()
+            if iport == '':
+                f_conf.close()
+                return iport
+            if iport[0] != '#':
                 break
-        f.close()
+        f_conf.close()
 
     # Check ethernet connection(model name not checked)
-    sInterface = str.split('\n')[0]
+    sInterface = iport.split('\n')[0]
     # print 'sInterface=',sInterface
-    if (sInterface.count('.') == 3 and sInterface.count(':') == 1):  # Got ip address.
-        ip_str = sInterface.split(':')
-        ip = ip_str[0].split('.')
-        if (ip_str[1].isdigit() and ip[0].isdigit() and ip[1].isdigit() and ip[2].isdigit() and ip[3].isdigit()):
-            # print('ip addr=%s.%s.%s.%s:%s'%(ip[0],ip[1],ip[2],ip[3],ip_str[1]))
-            str = lan.connection_test(sInterface)
-            if (str != ''):
-                return str
+    if sInterface.count('.') == 3 and sInterface.count(':') == 1:  # Got ip address.
+        ip, _port = sInterface.split(':')
+        if isip(ip):
+            contest = Lan.connectsocketn_test(sInterface)
+            if contest != '':
+                return contest
     # Check COM port connection(model name not checked)
-    elif ('COM' in sInterface):
-        if (com.connection_test(sInterface) != ''):
+    elif 'COM' in sInterface:
+        if Com.connection_test(sInterface) != '':
             return sInterface
-    elif ('ttyACM' in sInterface):
+    elif 'ttyACM' in sInterface:
         if 'ttyACM' == sInterface[0:6]:
             sInterface = '/dev/' + sInterface
-        if (com.connection_test(sInterface) != ''):
+        if Com.connection_test(sInterface) != '':
             return sInterface
 
-    return com.scanComPort()  # Scan all the USB port.
+    return Com.scanports()  # Scan all the USB port.
 
 
 class Window(QtGui.QWidget):
@@ -265,7 +254,7 @@ class Window(QtGui.QWidget):
             file_name = QtGui.QFileDialog.getSaveFileName(self, "Save as", 'DS0001', "Fast CSV File(*.csv)")[0]
             num = len(dso.ch_list)
             # print num
-            for ch in xrange(num):
+            for ch in range(num):
                 if (dso.info[ch] == []):
                     print('Failed to save data, raw data information is required!')
                     return
@@ -273,15 +262,15 @@ class Window(QtGui.QWidget):
             item = len(dso.info[0])
             # Write file header.
             f.write('%s,\r\n' % dso.info[0][0])
-            for x in xrange(1, 24):
+            for x in range(1, 24):
                 str = ''
-                for ch in xrange(num):
+                for ch in range(num):
                     str += ('%s,' % dso.info[ch][x])
                 str += '\r\n'
                 f.write(str)
             # Write Fast CSV mode only.
             str = ''
-            for ch in xrange(num):
+            for ch in range(num):
                 str += 'Mode,Fast,'
             str += '\r\n'
             f.write(str)
@@ -290,7 +279,7 @@ class Window(QtGui.QWidget):
             if (num == 1):
                 str += ('%s,' % dso.info[0][25])
             else:
-                for ch in xrange(num):
+                for ch in range(num):
                     str += ('%s,,' % dso.info[ch][25])
             str += '\r\n'
             f.write(str)
@@ -300,12 +289,12 @@ class Window(QtGui.QWidget):
             tenth = int(item / 10)
             n_tenth = tenth - 1
             percent = 10
-            for x in xrange(item):
+            for x in range(item):
                 str = ''
                 if (num == 1):
                     str += ('%s,' % dso.iWave[0][x])
                 else:
-                    for ch in xrange(num):
+                    for ch in range(num):
                         str += ('%s, ,' % dso.iWave[ch][x])
                 str += '\r\n'
                 f.write(str)
@@ -334,19 +323,17 @@ class Window(QtGui.QWidget):
         dso.ch_list = []
         full_path_name = QtGui.QFileDialog.getOpenFileName(self, self.tr("Open File"), ".",
                                                            "CSV/LSF files (*.csv *.lsf);;All files (*.*)")
-        sFileName = unicode(full_path_name).split(',')[0][3:-1]  # For PySide
-        print
-        sFileName
-        if (len(sFileName) <= 0):
+        sFileName = np.compat.unicode(full_path_name).split(',')[0][3:-1]  # For PySide
+        print(sFileName)
+        if len(sFileName) <= 0:
             return
         if os.path.exists(sFileName):
-            print
-            'Reading file...'
-            count = dso.readRawDataFile(sFileName)
+            print('Reading file...')
+            count = dso.readrawdatafile(sFileName)
             # Draw waveform.
-            if (count > 0):
+            if count > 0:
                 total_chnum = len(dso.ch_list)
-                if (total_chnum == 0):
+                if total_chnum == 0:
                     return
                 self.drawWaveform(0)
         else:
@@ -471,7 +458,7 @@ class Window(QtGui.QWidget):
         # Draw waveforms.
         ax = [[], [], [], []]
         p = []
-        for ch in xrange(total_chnum):
+        for ch in range(total_chnum):
             if (ch == 0):
                 ax[ch] = host_subplot(111, axes_class=AA.Axes)
                 ax[ch].set_xlabel("Time (sec)")
@@ -532,7 +519,7 @@ if __name__ == '__main__':
         cmd = ''
 
     # Check interface according to config file or command line argument.
-    port = checkInterface(cmd)
+    port = checkinterface(cmd)
 
     # Connecting to a DSO.
     dso = dso2ke.Dso(port)
