@@ -86,7 +86,7 @@ def checkinterface(interface):
         if(Com.connection_test(sinterface) != ''):
             return sinterface
     
-    return Com.scanComPort()  #Scan all the USB port.
+    return Com.scanports()  #Scan all the USB port.
 
 class Window(QtGui.QWidget):
     def __init__(self, parent=None):

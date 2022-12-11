@@ -25,7 +25,7 @@ For details see the copyright notice of the individual package.
 Description:
 gw_com is a python USB interface module used to connect and read/write data from/to DSO.
 
-Version: 1.01
+Version: 1.02
 
 Created on JUN 28 2018
 Updated on DEC 11 2022
@@ -36,90 +36,83 @@ import time
 import serial
 from serial.tools import list_ports
 
-usb_id={'2184' : ['003f', '0040', '0041', '0042'], '098f' : ['2204']}  #USB VID/PID
+usb_id = {'2184': ['003f', '0040', '0041', '0042'], '098f': ['2204']}  # USB VID/PID
+
 
 class Com:
-    def __init__(self, port):
+    def __init__(self, port: str):
         try:
-            self.IO = serial.Serial(port, baudrate=38400, bytesize=8, parity ='N', stopbits=1, xonxoff=False, dsrdtr=False, timeout=5)
-        except serial.SerialException as e:
-            print(e.message)
-            raise Exception('__init__(), open port failed!')
+            self.tty = serial.Serial(port, baudrate=38400, bytesize=8, parity='N', stopbits=1, xonxoff=False,
+                                     dsrdtr=False, timeout=5)
+        except serial.SerialException:
+            raise Exception(f'Failed to open {port}')
 
     def write(self, cmd):
         try:
-            self.IO.write(cmd)
-        except serial.SerialException as e:
-            print("write(), %s" % e)
-        
+            self.tty.write(cmd)
+        except serial.SerialException:
+            raise Exception(f'Write failed on {self.tty.name}')
+
     def read(self):
         try:
-            return self.IO.readline()
-        except serial.SerialException, e:
-            print "read(), %s" % e
-            return ''
-        
-    def readBytes(self, length):
-        try:
-            str=self.IO.read(length)
-            return str
-        except serial.SerialException, e:
-            print "readBytes(), %s" % e
-            return ''
+            return self.tty.readline()
+        except serial.SerialException:
+            raise Exception(f'Read failed on {self.tty.name}')
 
-    
-    def clearBuf(self):
+    def readbytes(self, length: int):
+        try:
+            return self.tty.read(length)
+        except serial.SerialException:
+            raise Exception(f'Read failed on {self.tty.name}')
+
+    def clearbuf(self):
         time.sleep(0.5)
-        while(True):
-            num=self.IO.inWaiting()
-            if(num==0):
+        while True:
+            num = self.tty.inWaiting()
+            if num == 0:
                 break
             else:
-                print '-',
-            self.IO.flushInput()    #Clear input buffer.
+                print('-')
+            self.tty.flushInput()  # Clear input buffer.
             time.sleep(0.1)
-    
-    def closeIO(self):
-        self.IO.close()
-    
-    @classmethod
-    def connection_test(self, port):
-        try:
-            __port = serial.Serial(port, baudrate=38400, bytesize=8, parity ='N', stopbits=1, xonxoff=False, dsrdtr=False, timeout=5)
-            __port.close()
-            return port
-        except serial.SerialException, e:
-            print e.message
-            return ''
+
+    def close(self):
+        self.tty.close()
 
     @classmethod
-    def scanComPort(self):
-        port_list=list(list_ports.comports())
-        num=len(port_list)
-        #print 'num=', num
-        for i in xrange(num):
-            str=port_list[i][2].split('=')
-            #print str
-            if(str[0]=='USB VID:PID'):
-                str=str[1].split(' ')[0] #Extract VID and PID from string.
-                str=str.split(':')
-                print str
-                if(str[0] in usb_id):
-                    if(str[1].lower() in usb_id[str[0]]):
-                        port=port_list[i][0]
+    def connection_test(cls, port):
+        __port = serial.Serial(port, baudrate=38400, bytesize=8, parity='N', stopbits=1, xonxoff=False, dsrdtr=False,
+                               timeout=5)
+        __port.close()
+        return port
+
+    @classmethod
+    def scanports(cls):
+        port_list = list(list_ports.comports())
+        for tty in port_list:
+            port = tty[2].split('=')
+            # print str
+            if port[0] == 'USB VID:PID':
+                port = port[1].split(' ')[0]  # Extract VID and PID from string.
+                port = port.split(':')
+                print(port)
+                if port[0] in usb_id:
+                    if port[1].lower() in usb_id[port[0]]:
+                        port = tty[0]
                         try:
-                            __port = serial.Serial(port, baudrate=38400, bytesize=8, parity ='N', stopbits=1, xonxoff=False, dsrdtr=False, timeout=5)
-                        except serial.SerialException, e:
-                            print e.message
+                            __port = serial.Serial(port, baudrate=38400, bytesize=8, parity='N', stopbits=1,
+                                                   xonxoff=False, dsrdtr=False, timeout=5)
+                        except serial.SerialException as e:
+                            print(e)
                             continue
                         time.sleep(0.5)
-                        while(True):
-                            num=__port.inWaiting()
-                            if(num==0):
+                        while True:
+                            num = __port.inWaiting()
+                            if num == 0:
                                 break
                             else:
-                                print '-',
-                            __port.flushInput()  #Clear input buffer.
+                                print('-')
+                            __port.flushInput()  # Clear input buffer.
                             time.sleep(0.1)
                         __port.close()
                         return port
