@@ -25,7 +25,7 @@ For details see the copyright notice of the individual package.
 Description:
 gw_com is a python USB interface module used to connect and read/write data from/to DSO.
 
-Version: 1.02
+Version: 1.03
 
 Created on JUN 28 2018
 Updated on DEC 11 2022
@@ -39,45 +39,32 @@ from serial.tools import list_ports
 usb_id = {'2184': ['003f', '0040', '0041', '0042'], '098f': ['2204']}  # USB VID/PID
 
 
-class Com:
-    def __init__(self, port: str):
-        try:
-            self.tty = serial.Serial(port, baudrate=38400, bytesize=8, parity='N', stopbits=1, xonxoff=False,
-                                     dsrdtr=False, timeout=5)
-        except serial.SerialException:
-            raise Exception(f'Failed to open {port}')
+class Com(serial.Serial):
+    def __init__(self, ty: str):
+        super().__init__(ty, baudrate=38400, bytesize=8, parity='N', stopbits=1, xonxoff=False, dsrdtr=False, timeout=5)
 
-    def write(self, cmd):
+    def getdata(self):
         try:
-            self.tty.write(cmd)
+            return self.readline()
         except serial.SerialException:
-            raise Exception(f'Write failed on {self.tty.name}')
-
-    def read(self):
-        try:
-            return self.tty.readline()
-        except serial.SerialException:
-            raise Exception(f'Read failed on {self.tty.name}')
+            raise Exception(f'Read failed on {self.name}')
 
     def readbytes(self, length: int):
         try:
-            return self.tty.read(length)
+            return self.read(length)
         except serial.SerialException:
-            raise Exception(f'Read failed on {self.tty.name}')
+            raise Exception(f'Read failed on {self.name}')
 
-    def clearbuf(self):
+    def clearbuff(self):
         time.sleep(0.5)
         while True:
-            num = self.tty.inWaiting()
+            num = self.inWaiting()
             if num == 0:
                 break
             else:
                 print('-')
-            self.tty.flushInput()  # Clear input buffer.
+            self.flushInput()  # Clear input buffer.
             time.sleep(0.1)
-
-    def close(self):
-        self.tty.close()
 
     @classmethod
     def connection_test(cls, port):
@@ -117,4 +104,3 @@ class Com:
                         __port.close()
                         return port
         print('Device not found!')
-        return ''

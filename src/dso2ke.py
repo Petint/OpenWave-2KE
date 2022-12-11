@@ -113,11 +113,11 @@ class Dso:
             except:
                 print('Open COM port failed!')
                 return
-            self.IO.clearbuf()
+            self.IO.clearbuff()
         else:
             return
         self.write = self.IO.write
-        self.read = self.IO.read
+        self.read = self.IO.getdata
         self.readBytes = self.IO.readbytes
         self.closeIO = self.IO.closeIO
         self.write('*IDN?\n')
