@@ -65,7 +65,6 @@ def generate_lut():
         pixel888[1]=(i>>3)&0xfc
         pixel888[2]=(i<<3)&0xf8
         lu_table.append(pixel888)
-
 class Dso:
     def __init__(self, interface):
         if(os.name=='posix'): #unix
@@ -91,7 +90,7 @@ class Dso:
             self.connection_status=0
         global inBuffer
         self.ver=__version__ #Driver version.
-        self.iWave=[[], [], [], []]
+        self.iWave=[[],[],[],[]]
         self.vdiv=[[], [], [], []]
         self.vunit=[[], [], [], []]
         self.dt=[[], [], [], []]
@@ -101,18 +100,18 @@ class Dso:
         self.info=[[], [], [], []]
         generate_lut()
 
-    def connect(self, str):
-        if(str.count('.') == 3 and str.count(':') == 1): #Check if str is ip address or not.
+    def connect(self, pname):
+        if pname.count('.') == 3 and pname.count(':') == 1: #Check if str is ip address or not.
             try:
-                self.IO=lan(str)
+                self.IO=lan(pname)
             except:
-                print 'Open LAN port failed!'
+                print('Open LAN port failed!')
                 return
-        elif('/dev/ttyACM' in str) or ('COM' in str): #Check if str is COM port.
+        elif('/dev/ttyACM' in pname) or ('COM' in pname): #Check if str is COM port.
             try:
-                self.IO=com(str)
+                self.IO = com(pname)
             except:
-                print 'Open COM port failed!'
+                print('Open COM port failed!')
                 return
             self.IO.clearBuf()
         else:
@@ -123,8 +122,8 @@ class Dso:
         self.closeIO=self.IO.closeIO
         self.write('*IDN?\n')
         model_name=self.read().split(',')[1]
-        print '%s connected to %s successfully!'%(model_name, str)
-        if(self.osname=='win10') and ('COM' in str):
+        print '%s connected to %s successfully!'%(model_name, pname)
+        if(self.osname=='win10') and ('COM' in pname):
             self.write(':USBDelay ON\n')  #Prevent data loss on Win 10.
             print 'Send :USBDelay ON'
         if(model_name in sModelList[0]):
@@ -142,7 +141,7 @@ class Dso:
         
         if not os.path.exists('port.config'):
             f = open('port.config', 'wb')
-            f.write(str)
+            f.write(pname)
             f.close()
 
     def getBlockData(self): #Used to get image data.
@@ -223,27 +222,26 @@ class Dso:
         self.write(":ACQ%d:MEM?\n" % ch)                    #Write command(get raw datas) to DSO.
 
         index=len(self.ch_list)
-        if(header_on == True):
-            if(index==0): #Getting first waveform => reset self.info.
+        if header_on:
+            if index == 0: #Getting first waveform => reset self.info.
                 self.info=[[], [], [], []]
             
             self.info[index]=self.read().split(';')
             num=len(self.info[index])
             self.info[index][num-1]=self.info[index][num-2] #Convert info[] to csv compatible format.
             self.info[index][num-2]='Mode,Fast'
-            sCh = [s for s in self.info[index] if "Source" in s]
-            self.ch_list.append(sCh[0].split(',')[1])
-            sDt = [s for s in self.info[index] if "Sampling Period" in s]
-            self.dt[index]=float(sDt[0].split(',')[1])
-            sDv = [s for s in self.info[index] if "Vertical Scale" in s]
-            self.vdiv[index]=float(sDv[0].split(',')[1])
-            sVpos=[s for s in self.info[index] if "Vertical Position" in s]
-            self.vpos[index]=float(sVpos[0].split(',')[1])
-            sHpos = [s for s in self.info[index] if "Horizontal Position" in s]
-            self.hpos[index]=float(sHpos[0].split(',')[1])
-            sVunit=[s for s in self.info[index] if "Vertical Units" in s]
-            self.vunit[index]=sVunit[0].split(',')[1]
-            #print sHpos, self.vdiv[index],  self.dt[index],  self.hpos[index], sDv
+            sch = [s for s in self.info[index] if "Source" in s]
+            self.ch_list.append(sch[0].split(',')[1])
+            sdt = [s for s in self.info[index] if "Sampling Period" in s]
+            self.dt[index]=float(sdt[0].split(',')[1])
+            sdv = [s for s in self.info[index] if "Vertical Scale" in s]
+            self.vdiv[index]=float(sdv[0].split(',')[1])
+            svpos=[s for s in self.info[index] if "Vertical Position" in s]
+            self.vpos[index]=float(svpos[0].split(',')[1])
+            shpos = [s for s in self.info[index] if "Horizontal Position" in s]
+            self.hpos[index]=float(shpos[0].split(',')[1])
+            svunit=[s for s in self.info[index] if "Vertical Units" in s]
+            self.vunit[index]=svunit[0].split(',')[1]
         self.getBlockData()
         self.points_num=len(inBuffer[self.headerlen:-1])/2   #Calculate sample points length.
         self.iWave[index] = unpack('>%sh' % (len(inBuffer[self.headerlen:-1])/2), inBuffer[self.headerlen:-1])

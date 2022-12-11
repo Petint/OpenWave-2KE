@@ -60,42 +60,41 @@ from gw_lan import lan
 import dso2ke
 
 __version__ = "1.05" #OpenWave-2KE software version.
-
-def checkInterface(str):
-    if str!= '':
-        print str
+def checkinterface(interface):
+    if interface!= '':
+        print(interface)
     #Load config file if it exists
     elif os.path.exists('port.config'):
-        f = open('port.config', 'r')
-        while(1):
-            str = f.readline()
-            if(str == ''):
-                f.close()
+        p = open('port.config', 'r')
+        while True:
+            interface = p.readline()
+            if interface == '':
+                p.close()
                 return ''
-            if(str[0] != '#'):
+            if interface[0] != '#':
                 break
-        f.close()
+        p.close()
        
     #Check ethernet connection(model name not checked)
-    sInterface=str.split('\n')[0]
-    #print 'sInterface=',sInterface
-    if(sInterface.count('.') == 3 and sInterface.count(':') == 1): #Got ip address.
-        ip_str=sInterface.split(':')
+    sinterface=line.split('\n')[0]
+    #print 'sinterface=',sinterface
+    if(sinterface.count('.') == 3 and sinterface.count(':') == 1): #Got ip address.
+        ip_str=sinterface.split(':')
         ip=ip_str[0].split('.')
         if(ip_str[1].isdigit() and ip[0].isdigit() and ip[1].isdigit() and ip[2].isdigit() and ip[3].isdigit()):
             #print('ip addr=%s.%s.%s.%s:%s'%(ip[0],ip[1],ip[2],ip[3],ip_str[1]))
-            str=lan.connection_test(sInterface)
-            if(str != ''):
-                return str
+            line=lan.connection_test(sinterface)
+            if(line != ''):
+                return line
     #Check COM port connection(model name not checked)
-    elif('COM' in sInterface):
-        if(com.connection_test(sInterface) != ''):
-            return sInterface
-    elif('ttyACM' in sInterface):
-        if 'ttyACM' == sInterface[0:6]:
-            sInterface='/dev/'+sInterface
-        if(com.connection_test(sInterface) != ''):
-            return sInterface
+    elif('COM' in sinterface):
+        if(com.connection_test(sinterface) != ''):
+            return sinterface
+    elif('ttyACM' in sinterface):
+        if 'ttyACM' == sinterface[0:6]:
+            sinterface= '/dev/' + sinterface
+        if(com.connection_test(sinterface) != ''):
+            return sinterface
     
     return com.scanComPort()  #Scan all the USB port.
 
@@ -520,7 +519,7 @@ if __name__ == '__main__':
         cmd=''
     
     #Check interface according to config file or command line argument.
-    port=checkInterface(cmd)
+    port= checkinterface(cmd)
     
     #Connecting to a DSO.
     dso=dso2ke.Dso(port)
