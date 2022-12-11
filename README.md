@@ -1,6 +1,6 @@
 ![Python logo](/image/python-logo.png)
 
-This is a Python program.
+This is a Python 2 program slowly being updated to Python 3.
 
 
 
