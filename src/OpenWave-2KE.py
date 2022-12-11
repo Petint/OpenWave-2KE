@@ -26,7 +26,7 @@ OpenWave-2KE use Qt version 4.8 library under the terms of the LGPL version 2.1.
 Description:
 OpenWave-2KE is a python example program used to get waveform and image from DSO.
 
-Version: 1.06
+Version: 1.07
 
 Modified on APR 07 2020
 Updated on DEC 11 2022
@@ -36,10 +36,10 @@ Author: Kevin Meng, Petint
 
 import matplotlib.pyplot as plt
 import matplotlib as mpl
-# from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
-# from matplotlib.backends.backend_qt4agg import NavigationToolbar2QT as NavigationToolbar
+from matplotlib.backends.backend_qt import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.backends.backend_qt import NavigationToolbar2QT as NavigationToolbar
 from mpl_toolkits.axes_grid1 import host_subplot
-import mpl_toolkits.axisartist as AA
+import mpl_toolkits.axisartist as aa
 from PySide6 import QtCore, QtGui
 import numpy as np
 from PIL import Image
@@ -50,7 +50,7 @@ from gw_com import Com
 from gw_lan import Lan, isip
 import dso2ke
 
-__version__ = "1.06"  # OpenWave-2KE software version.
+__version__ = "1.07"  # OpenWave-2KE software version.
 mpl.rcParams['backend.qt4'] = 'PySide'  # Used for PySide.
 mpl.rcParams['agg.path.chunksize'] = 100000  # For big data.
 
@@ -460,7 +460,7 @@ class Window(QtGui.QWidget):
         p = []
         for ch in range(total_chnum):
             if (ch == 0):
-                ax[ch] = host_subplot(111, axes_class=AA.Axes)
+                ax[ch] = host_subplot(111, axes_class=aa.Axes)
                 ax[ch].set_xlabel("Time (sec)")
             else:
                 ax[ch] = ax[0].twinx()
