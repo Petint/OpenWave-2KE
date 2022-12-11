@@ -334,7 +334,7 @@ class Window(QtGui.QWidget):
             return
         if os.path.exists(sFileName):
             print 'Reading file...'
-            count=dso.readRawDataFile(sFileName)
+            count= dso.readrawdatafile(sFileName)
             #Draw waveform.
             if(count>0):
                 total_chnum=len(dso.ch_list)

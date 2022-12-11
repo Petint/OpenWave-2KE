@@ -255,15 +255,15 @@ class Dso:
         while True:                                #Checking acquisition is ready or not.
             self.write(str_stat)
             state=self.read()
-            if(state[0] == '1'):
+            if state[0] == '1':
                 break
             time.sleep(0.1)
             loop_cnt +=1
-            if(loop_cnt >= 50):
+            if loop_cnt >= 50:
                 print('Please check signal!')
                 loop_cnt=0
                 max_cnt+=1
-                if(max_cnt==5):
+                if max_cnt==5:
                     return -1
         return 0
 
@@ -282,65 +282,65 @@ class Dso:
                 fWave[x]=float(self.iWave[ch][i])*dv
         return fWave
         
-    def readRawDataFile(self,  fileName):
+    def readrawdatafile(self,  filename):
         #Check file format(csv or lsf)
         self.info=[[], [], [], []]
-        if(fileName.lower().endswith('.csv')):
-            self.dataType='csv'
-        elif(fileName.lower().endswith('.lsf')):
-            self.dataType='lsf'
+        if filename.lower().endswith('.csv'):
+            self.datatype = 'csv'
+        elif filename.lower().endswith('.lsf'):
+            self.datatype = 'lsf'
         else:
             return -1
-        f = open(fileName, 'rb')
+        f = open(filename, 'rb')
         info=[]
         #Read file header.
-        if(self.dataType=='csv'):
-            for x in xrange(26):
-                info.append(f.readline().split(',\r\n')[0])
-            format=info[0].split(',')[1]
-            if((format != '2.0E') and (format != '2.0MA')): #Check format version
+        if self.datatype== 'csv':
+            for x in range(26):
+                info.append(f.readline().split(b',\r\n')[0])
+            bytedata=info[0].split(b',')[1]
+            if(bytedata != b'2.0E') and (bytedata != b'2.0MA'): #Check format version
                 f.close()
                 print('Format error!')
                 return -1
-            count=info[5].count('CH')  #Check channel number in file.
+            count=info[5].count(b'CH')  #Check channel number in file.
             wave=f.read().splitlines() #Read raw data from file.
             self.points_num=len(wave)
-            if(info[24].split(',')[1]=='Fast'):
+            if info[24].split(b',')[1]=='Fast':
                 self.dataMode='Fast'
             else:
                 self.dataMode='Detail'
         else:
-            info=f.readline().split(';') #The last item will be '\n'.
-            format=info[0].split('Format,')[1]
-            if((format != '2.0E') and (format != '2.0MA')): #Check format version
+            info=f.readline().split(b';') #The last item will be '\n'.
+            bytedata=info[0].split(b'Format,')[1]
+            if (bytedata != '2.0E') and (bytedata != '2.0MA'): #Check format version
                 f.close()
                 print('Format error!')
                 return -1
-            if(f.read(1)!='#'):
+            if f.read(1)!='#':
                 print('Format error!')
                 sys.exit(0)
             digit=int(f.read(1))
             num=int(f.read(digit))
             count=1
             wave=f.read() #Read raw data from file.
-            self.points_num=len(wave)/2   #Calculate sample points length.
-            self.dataMode='Fast'
+            self.points_num = len(wave)/2   #Calculate sample points length.
+            self.dataMode = 'Fast'
         f.close()
 
         print('Plotting waveform...')
         if(count==1): #1 channel
             self.iWave[0]=[0]*self.points_num
-            self.ch_list.append(info[5].split(',')[1])
-            self.vunit[0] =info[6].split(',')[1] #Get vertical units.
-            self.vdiv[0]  = float(info[12].split(',')[1]) #Get vertical scale. => Voltage for ADC's single step.
-            self.vpos[0] =float(info[13].split(',')[1]) #Get vertical position.
-            self.hpos[0] =float(info[16].split(',')[1]) #Get horizontal position.
-            self.dt[0]   =float(info[19].split(',')[1]) #Get sample period.
-            dv1=self.vdiv[0]/25
-            vpos=int(self.vpos[0]/dv1)+128
+            self.ch_list.append(info[5].split(b',')[1])
+            self.vunit[0] =info[6].split(b',')[1] #Get vertical units.
+            self.vdiv[0]  = float(info[12].split(b',')[1]) #Get vertical scale. => Voltage for ADC's single step.
+            self.vpos[0] =float(info[13].split(b',')[1]) #Get vertical position.
+            self.hpos[0] =float(info[16].split(b',')[1]) #Get horizontal position.
+            self.dt[0]   =float(info[19].split(b',')[1]) #Get sample period.
+            dv1 = self.vdiv[0]/25
+            vpos = int(self.vpos[0]/dv1)+128
             vpos1=self.vpos[0]
             num=self.points_num
-            if(self.dataType=='csv'):
+            if self.datatype == 'csv':
                 for x in xrange(26):
                     self.info[0].append(info[x])
                 if(self.dataMode=='Fast'):
