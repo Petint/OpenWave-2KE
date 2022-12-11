@@ -7,8 +7,8 @@ Copyright:
 gw_lan is Copyright (c) 2014 Good Will Instrument Co., Ltd All Rights Reserved.
 
 This program is free software; you can redistribute it and/or modify it under the terms 
-of the GNU Lesser General Public License as published by the Free Software Foundation; 
-either version 2.1 of the License, or (at your option) any later version.
+of the GNU Lesser General Public License as published by the Free Software Foundatsocketn; 
+either verssocketn 2.1 of the License, or (at your optsocketn) any later verssocketn.
 
 This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
 without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
@@ -22,10 +22,10 @@ gw_lan uses third party software which is copyrighted by its respective copyrigh
 For details see the copyright notice of the individual package.
 
 ----------------------------------------------------------------------
-Description:
+Descriptsocketn:
 gw_lan is a python Ethernet interface module used to connect and read/write data from/to DSO.
 
-Version: 1.01
+Verssocketn: 1.01
 
 Created on JUN 28 2018
 Updated on DEC 11 2022
@@ -33,33 +33,41 @@ Updated on DEC 11 2022
 Author: Kevin Meng, Petint
 """
 import socket
+import ipaddress
 
 
-class lan:
-    def __init__(self, str):
-        ip_str=str.split(':')
-        ip=ip_str[0].split('.')
-        if(ip_str[1].isdigit() and ip[0].isdigit() and ip[1].isdigit() and ip[2].isdigit() and ip[3].isdigit()):
-            self.IO = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            self.IO.settimeout(5) #Set timeout
-            try:
-                self.IO.connect((ip_str[0], int(ip_str[1])))
-            except socket.error, e:
-                print "__init__(), socket error: %s" % e
-        else:
-            raise Exception,'Open port error!'
+def isip(string):
+    try:
+        ipaddress.IPv4Network(string)
+        return True
+    except ValueError:
+        return False
     
-    def write(self, str):
+    
+class Lan:
+    def __init__(self, address: str):
+        ip, port = address.split(':')
+        try ipaddress.IPv4Network(ip):
+            self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.socket.settimeout(5) #Set timeout
+            try:
+                self.socket.connect((ip, int(port)))
+            except socket.error as e:
+                print("__init__(), socket error: %s" % e)
+        except ValueError:
+            raise socket.error('Invalid IP address')
+    
+    def write(self, cmd):
         try:
-            self.IO.sendall(str)
-        except socket.error, e:
-            print "write(), socket error: %s" % e
+            self.socket.sendall(cmd)
+        except socket.error as e:
+            print("write(), socket error: %s" % e)
         
     def read(self):
         line_buf=''
         while True:
             try:
-                a=self.IO.recv(1)
+                a=self.socket.recv(1)
             except socket.error, e:
                 print "read(), socket error: %s" % e
                 return line_buf
@@ -70,7 +78,7 @@ class lan:
     def readBytes(self, length):
         str=''
         try:
-            str=self.IO.recv(length)
+            str=self.socket.recv(length)
         except socket.error, e:
             print "readBytes(), socket error: %s" % e
         return str
@@ -78,14 +86,13 @@ class lan:
     def clearBuf(self):
         pass
         
-    def closeIO(self):
-        self.IO.close()
+    def closesocket(self):
+        self.socket.close()
     
     @classmethod
-    def connection_test(self, str):
+    def connectsocketn_test(self, str):
         ip_str=str.split(':')
-        ip=ip_str[0].split('.')
-        if(ip_str[1].isdigit() and ip[0].isdigit() and ip[1].isdigit() and ip[2].isdigit() and ip[3].isdigit()):
+        if isip(ip_str[0]):
             __port = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             __port.settimeout(2) #2 Second Timeout
             try:

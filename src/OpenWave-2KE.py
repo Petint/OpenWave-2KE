@@ -46,7 +46,7 @@ import numpy as np
 from PIL import Image
 import os, sys, time
 from gw_com import Com
-from gw_lan import lan
+from gw_lan import Lan
 import dso2ke
 
 __version__ = "1.05" #OpenWave-2KE software version.
@@ -73,7 +73,7 @@ def checkinterface(interface):
         ip=ip_str[0].split('.')
         if(ip_str[1].isdigit() and ip[0].isdigit() and ip[1].isdigit() and ip[2].isdigit() and ip[3].isdigit()):
             #print('ip addr=%s.%s.%s.%s:%s'%(ip[0],ip[1],ip[2],ip[3],ip_str[1]))
-            line=lan.connection_test(sinterface)
+            line=Lan.connection_test(sinterface)
             if(line != ''):
                 return line
     #Check COM port connection(model name not checked)
