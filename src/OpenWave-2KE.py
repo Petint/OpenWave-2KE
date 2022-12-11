@@ -92,53 +92,42 @@ def checkinterface(iport):
     return Com.scanports()  # Scan all the USB port.
 
 
-class Window(QtGui.QWidget):
+class Window(QtGui.QWindow):
     def __init__(self, parent=None):
         super(Window, self).__init__(parent)
-
         self.setWindowTitle('OpenWave-2KE V%s' % __version__)
         icon = QtGui.QIcon()
         icon.addPixmap(QtGui.QPixmap("openwave.ico"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.setWindowIcon(icon)
-
         # Waveform area.
         self.figure = plt.figure()
         self.figure.set_facecolor('white')
-
         self.canvas = FigureCanvas(self.figure)
         self.canvas.setMinimumSize(800, 400)
-
         self.toolbar = NavigationToolbar(self.canvas, self)
         self.toolbar.hide()
-
         # Zoom In/out and Capture Buttons
         self.zoomBtn = QtGui.QPushButton('Zoom')
         self.zoomBtn.setFixedSize(100, 30)
         self.zoomBtn.clicked.connect(self.toolbar.zoom)
-
         self.panBtn = QtGui.QPushButton('Pan')
         self.panBtn.setFixedSize(100, 30)
         self.panBtn.clicked.connect(self.toolbar.pan)
-
         self.homeBtn = QtGui.QPushButton('Home')
         self.homeBtn.setFixedSize(100, 30)
         self.homeBtn.clicked.connect(self.toolbar.home)
-
         self.captureBtn = QtGui.QPushButton('Capture')
         self.captureBtn.setFixedSize(100, 50)
-        self.captureBtn.clicked.connect(self.manualCapture)
-        if (dso.connection_status == 0):
+        self.captureBtn.clicked.connect(self.manualcapture)
+        if dso.connection_status == 0:
             self.captureBtn.setEnabled(False)
-
         self.continuousBtn = QtGui.QRadioButton('Continuous')
         self.continuousBtn.setEnabled(True)
-        self.continuousBtn.clicked.connect(self.setContinuous)
-
+        self.continuousBtn.clicked.connect(self.continuous)
         # Continuous capture selection
         self.captureLayout = QtGui.QHBoxLayout()
         self.captureLayout.addWidget(self.captureBtn)
         self.captureLayout.addWidget(self.continuousBtn)
-
         # Type: Raw Data/Image
         self.typeBtn = QtGui.QPushButton('Raw Data')
         self.typeBtn.setToolTip("Switch to get raw data or image from DSO.")
@@ -146,40 +135,35 @@ class Window(QtGui.QWidget):
         self.typeFlag = True  # Initial state -> Get raw data
         self.typeBtn.setCheckable(True)
         self.typeBtn.setChecked(True)
-        self.typeBtn.clicked.connect(self.typeAction)
-
+        self.typeBtn.clicked.connect(self.typeaction)
         # Channel Selection.
         self.ch1checkBox = QtGui.QCheckBox('CH1')
         self.ch1checkBox.setFixedSize(60, 30)
         self.ch1checkBox.setChecked(True)
         self.ch2checkBox = QtGui.QCheckBox('CH2')
         self.ch2checkBox.setFixedSize(60, 30)
-        if (dso.chnum == 4):
+        if dso.chnum == 4:
             self.ch3checkBox = QtGui.QCheckBox('CH3')
             self.ch3checkBox.setFixedSize(60, 30)
             self.ch4checkBox = QtGui.QCheckBox('CH4')
             self.ch4checkBox.setFixedSize(60, 30)
-
         # Set channel selection layout.
         self.selectLayout = QtGui.QHBoxLayout()
         self.selectLayout.addWidget(self.ch1checkBox)
         self.selectLayout.addWidget(self.ch2checkBox)
-        if (dso.chnum == 4):
+        if dso.chnum == 4:
             self.selectLayout2 = QtGui.QHBoxLayout()
             self.selectLayout2.addWidget(self.ch3checkBox)
             self.selectLayout2.addWidget(self.ch4checkBox)
-
         self.typeLayout = QtGui.QHBoxLayout()
         self.typeLayout.addWidget(self.typeBtn)
         self.typeLayout.addLayout(self.selectLayout)
-        if (dso.chnum == 4):
+        if dso.chnum == 4:
             self.typeLayout.addLayout(self.selectLayout2)
-
         self.zoominoutLayout = QtGui.QHBoxLayout()
         self.zoominoutLayout.addWidget(self.zoomBtn)
         self.zoominoutLayout.addWidget(self.panBtn)
         self.zoominoutLayout.addWidget(self.homeBtn)
-
         # Save/Load/Quit button
         self.saveBtn = QtGui.QPushButton('Save')
         self.saveBtn.setFixedSize(100, 50)
@@ -188,53 +172,44 @@ class Window(QtGui.QWidget):
         self.pictAction = self.saveMenu.addAction("&As PNG File")
         self.saveBtn.setMenu(self.saveMenu)
         self.saveBtn.setToolTip("Save waveform to CSV file or PNG file.")
-        self.connect(self.csvAction, QtCore.SIGNAL("triggered()"), self.saveCsvAction)
-        self.connect(self.pictAction, QtCore.SIGNAL("triggered()"), self.savePngAction)
-
+        self.connect(self.csvAction, QtCore.SIGNAL(b"triggered()"), self.savecsvaction)
+        self.connect(self.pictAction, QtCore.SIGNAL(b"triggered()"), self.savePngAction)
         self.loadBtn = QtGui.QPushButton('Load')
         self.loadBtn.setToolTip("Load CHx's raw data from file(*.csv, *.lsf).")
         self.loadBtn.setFixedSize(100, 50)
-        self.loadBtn.clicked.connect(self.loadAction)
-
+        self.loadBtn.clicked.connect(self.loadaction)
         self.quitBtn = QtGui.QPushButton('Quit')
         self.quitBtn.setFixedSize(100, 50)
-        self.quitBtn.clicked.connect(self.quitAction)
-
+        self.quitBtn.clicked.connect(self.quit)
         # set the layout
         self.waveLayout = QtGui.QHBoxLayout()
         self.waveLayout.addWidget(self.canvas)
-
         self.wave_box = QtGui.QVBoxLayout()
         self.wave_box.addLayout(self.waveLayout)
-
         self.wavectrlLayout = QtGui.QHBoxLayout()
         self.wavectrlLayout.addStretch(1)
         self.wavectrlLayout.addLayout(self.zoominoutLayout)
         self.wavectrlLayout.addStretch(1)
         self.wavectrlLayout.addLayout(self.captureLayout)
         self.wavectrlLayout.addStretch(1)
-
         self.saveloadLayout = QtGui.QHBoxLayout()
         self.saveloadLayout.addWidget(self.saveBtn)
         self.saveloadLayout.addWidget(self.loadBtn)
         self.saveloadLayout.addWidget(self.quitBtn)
-
         self.ctrl_box = QtGui.QHBoxLayout()
         self.ctrl_box.addLayout(self.typeLayout)
         self.ctrl_box.addLayout(self.saveloadLayout)
-
         main_box = QtGui.QVBoxLayout()
         main_box.addLayout(self.wave_box)  # Waveform area.
         main_box.addLayout(self.wavectrlLayout)  # Zoom In/Out...
         main_box.addLayout(self.ctrl_box)  # Save/Load/Quit
         self.setLayout(main_box)
-
         self.captured_flag = 0
         self.timer = QtCore.QTimer()
-        self.timer.timeout.connect(self.timerCapture)
+        self.timer.timeout.connect(self.timercapture)
 
-    def typeAction(self):
-        if (self.typeFlag == True):
+    def typeaction(self):
+        if self.typeFlag:
             self.typeFlag = False
             self.typeBtn.setText("Image")
             self.csvAction.setEnabled(False)
@@ -245,44 +220,44 @@ class Window(QtGui.QWidget):
         self.typeBtn.setChecked(self.typeFlag)
         self.ch1checkBox.setEnabled(self.typeFlag)
         self.ch2checkBox.setEnabled(self.typeFlag)
-        if (dso.chnum == 4):
+        if dso.chnum == 4:
             self.ch3checkBox.setEnabled(self.typeFlag)
             self.ch4checkBox.setEnabled(self.typeFlag)
 
-    def saveCsvAction(self):
-        if (self.typeFlag == True):  # Save raw data to csv file.
+    def savecsvaction(self):
+        if self.typeFlag:  # Save raw data to csv file.
             file_name = QtGui.QFileDialog.getSaveFileName(self, "Save as", 'DS0001', "Fast CSV File(*.csv)")[0]
             num = len(dso.ch_list)
             # print num
             for ch in range(num):
-                if (dso.info[ch] == []):
+                if not dso.info[ch]:
                     print('Failed to save data, raw data information is required!')
                     return
-            f = open(file_name, 'wb')
+            sf = open(file_name, 'wt')
             item = len(dso.info[0])
             # Write file header.
-            f.write('%s,\r\n' % dso.info[0][0])
+            sf.write('%s,\r\n' % dso.info[0][0])
             for x in range(1, 24):
-                str = ''
+                txt = ''
                 for ch in range(num):
-                    str += ('%s,' % dso.info[ch][x])
-                str += '\r\n'
-                f.write(str)
+                    txt += ('%s,' % dso.info[ch][x])
+                txt += '\r\n'
+                sf.write(txt)
             # Write Fast CSV mode only.
-            str = ''
+            txt = ''
             for ch in range(num):
-                str += 'Mode,Fast,'
-            str += '\r\n'
-            f.write(str)
+                txt += 'Mode,Fast,'
+            txt += '\r\n'
+            sf.write(txt)
 
-            str = ''
-            if (num == 1):
-                str += ('%s,' % dso.info[0][25])
+            txt = ''
+            if num == 1:
+                txt += ('%s,' % dso.info[0][25])
             else:
                 for ch in range(num):
-                    str += ('%s,,' % dso.info[ch][25])
-            str += '\r\n'
-            f.write(str)
+                    txt += ('%s,,' % dso.info[ch][25])
+            txt += '\r\n'
+            sf.write(txt)
             # Write raw data.
             item = len(dso.iWave[0])
             # print item
@@ -290,36 +265,36 @@ class Window(QtGui.QWidget):
             n_tenth = tenth - 1
             percent = 10
             for x in range(item):
-                str = ''
-                if (num == 1):
-                    str += ('%s,' % dso.iWave[0][x])
+                txt = ''
+                if num == 1:
+                    txt += ('%s,' % dso.iWave[0][x])
                 else:
                     for ch in range(num):
-                        str += ('%s, ,' % dso.iWave[ch][x])
-                str += '\r\n'
-                f.write(str)
-                if (x == n_tenth):
+                        txt += ('%s, ,' % dso.iWave[ch][x])
+                txt += '\r\n'
+                sf.write(txt)
+                if x == n_tenth:
                     n_tenth += tenth
                     print('%3d %% Saved\r' % percent),
                     percent += 10
-            f.close()
+            sf.close()
 
     def savePngAction(self):
         # Save figure to png file.
         file_name = QtGui.QFileDialog.getSaveFileName(self, "Save as", 'DS0001', "PNG File(*.png)")[0]
-        if (file_name == ''):
+        if file_name == '':
             return
-        if (self.typeFlag == True):  # Save raw data waveform as png file.
+        if self.typeFlag:  # Save raw data waveform as png file.
             main.figure.savefig(file_name)
         else:  # Save figure to png file.
-            if (dso.osname == 'pi'):  # For raspberry pi only.
+            if dso.osname == 'pi':  # For raspberry pi only.
                 img = dso.im.transpose(Image.FLIP_TOP_BOTTOM)
                 img.save(file_name)
             else:
                 dso.im.save(file_name)
         print('Saved image to %s.' % file_name)
 
-    def loadAction(self):
+    def loadaction(self):
         dso.ch_list = []
         full_path_name = QtGui.QFileDialog.getOpenFileName(self, self.tr("Open File"), ".",
                                                            "CSV/LSF files (*.csv *.lsf);;All files (*.*)")
@@ -335,23 +310,23 @@ class Window(QtGui.QWidget):
                 total_chnum = len(dso.ch_list)
                 if total_chnum == 0:
                     return
-                self.drawWaveform(0)
+                self.draw_wf(0)
         else:
             print('File not found!')
 
-    def quitAction(self):
-        if (dso.connection_status == 1):
+    def quit(self):
+        if dso.connection_status == 1:
             dso.closeIO()
         self.close()
 
-    def timerCapture(self):
-        self.captureAction()
-        if (self.continuousBtn.isChecked() == True):
+    def timercapture(self):
+        self.capture()
+        if self.continuousBtn.isChecked():
             self.timer.start(10)  # Automatic capturing.
 
-    def manualCapture(self):
-        if (self.continuousBtn.isChecked() == True):
-            if (self.captured_flag == 0):
+    def manualcapture(self):
+        if self.continuousBtn.isChecked():
+            if self.captured_flag == 0:
                 self.captured_flag = 1  # Continuous capture started.
                 self.captureBtn.setText("Click to Stop")
                 self.loadBtn.setEnabled(False)
@@ -361,61 +336,61 @@ class Window(QtGui.QWidget):
                 self.captureBtn.setText("Capture")
                 self.loadBtn.setEnabled(True)
                 self.timer.stop()
-        self.captureAction()
+        self.capture()
 
-    def captureAction(self):
+    def capture(self):
         dso.iWave = [[], [], [], []]
         dso.ch_list = []
-        if (self.typeFlag == True):  # Get raw data.
+        if self.typeFlag:  # Get raw data.
             draw_flag = False
             # Turn on the selected channels.
-            if ((self.ch1checkBox.isChecked() == True) and (dso.isChannelOn(1) == False)):
+            if self.ch1checkBox.isChecked() and dso.ischannelon(1) is False:
                 dso.write(":CHAN1:DISP ON\n")  # Set CH1 on.
-            if ((self.ch2checkBox.isChecked() == True) and (dso.isChannelOn(2) == False)):
+            if self.ch2checkBox.isChecked() and dso.ischannelon(2) is False:
                 dso.write(":CHAN2:DISP ON\n")  # Set CH2 on.
-            if (dso.chnum == 4):
-                if ((self.ch3checkBox.isChecked() == True) and (dso.isChannelOn(3) == False)):
+            if dso.chnum == 4:
+                if self.ch2checkBox.isChecked() and dso.ischannelon(3) is False:
                     dso.write(":CHAN3:DISP ON\n")  # Set CH3 on.
-                if ((self.ch4checkBox.isChecked() == True) and (dso.isChannelOn(4) == False)):
+                if self.ch2checkBox.isChecked() and dso.ischannelon(4) is False:
                     dso.write(":CHAN4:DISP ON\n")  # Set CH4 on.
             # Get all the selected channel's raw datas.
-            if (self.ch1checkBox.isChecked() == True):
+            if self.ch1checkBox.isChecked():
                 dso.getRawData(True, 1)  # Read CH1's raw data from DSO (including header).
-            if (self.ch2checkBox.isChecked() == True):
+            if self.ch2checkBox.isChecked():
                 dso.getRawData(True, 2)  # Read CH2's raw data from DSO (including header).
-            if (dso.chnum == 4):
-                if (self.ch3checkBox.isChecked() == True):
+            if dso.chnum == 4:
+                if self.ch3checkBox.isChecked():
                     dso.getRawData(True, 3)  # Read CH3's raw data from DSO (including header).
-                if (self.ch4checkBox.isChecked() == True):
+                if self.ch4checkBox.isChecked():
                     dso.getRawData(True, 4)  # Read CH4's raw data from DSO (including header).
             # Draw waveform.
             total_chnum = len(dso.ch_list)
-            if (total_chnum == 0):
+            if total_chnum == 0:
                 return
-            if (self.drawWaveform(1) == -1):
+            if self.draw_wf(1) == -1:
                 time.sleep(5)
-                self.drawWaveform(0)
+                self.draw_wf(0)
         else:  # Get image.
             img_type = 1  # 1 for RLE format, 0 for PNG format.
-            if (img_type):
+            if img_type:
                 dso.write(':DISP:OUTP?\n')  # Send command to get image from DSO.
             else:
                 dso.write(':DISP:PNGOutput?\n')  # Send command to get image from DSO.
             dso.getBlockData()
             dso.ImageDecode(img_type)
-            self.showImage()
+            self.show_image()
             plt.tight_layout(True)
             self.canvas.draw()
             print('Image is ready!')
 
-    def setContinuous(self):
-        if (self.continuousBtn.isChecked() == False):
+    def continuous(self):
+        if self.continuousBtn.isChecked() is False:
             self.captured_flag = 0  # Continuous capture stopped.
             self.timer.stop()
             self.loadBtn.setEnabled(True)
             self.captureBtn.setText("Capture")
 
-    def showImage(self):
+    def show_image(self):
         # Turn the ticks off and show image.
         plt.clf()
         ax = plt.gca()
@@ -423,7 +398,7 @@ class Window(QtGui.QWidget):
         ax.yaxis.set_visible(False)
         plt.imshow(dso.im)
 
-    def drawWaveform(self, mode):
+    def draw_wf(self, mode):
         total_chnum = len(dso.ch_list)
         num = dso.points_num
         ch_colortable = ['#C0B020', '#0060FF', '#FF0080', '#00FF60']
@@ -431,16 +406,16 @@ class Window(QtGui.QWidget):
         plt.cla()
         plt.clf()
         # Due to the memory limitation of matplotlib, we must reduce the sample points.
-        if (num == 10000000):
-            if (total_chnum > 2):
+        if num == 10000000:
+            if total_chnum > 2:
                 down_sample_factor = 4
-            elif (total_chnum == 2):
+            elif total_chnum == 2:
                 down_sample_factor = 4
             else:
                 down_sample_factor = 1
             num = num / down_sample_factor
-        elif (num == 20000000):
-            if (total_chnum > 1):
+        elif num == 20000000:
+            if total_chnum > 1:
                 down_sample_factor = 4
             else:
                 down_sample_factor = 2
@@ -452,50 +427,47 @@ class Window(QtGui.QWidget):
         t_end = dso.hpos[0] + num * dt / 2
         t = np.arange(t_start, t_end, dt)
         # print t_start, t_end, dt, len(t)
-        if ((len(t) - num) == 1):  # Avoid floating point rounding error.
+        if (len(t) - num) == 1:  # Avoid floating point rounding error.
             t = t[:-1]
         wave_type = '-'  # Set waveform type to vector.
         # Draw waveforms.
         ax = [[], [], [], []]
         p = []
         for ch in range(total_chnum):
-            if (ch == 0):
+            if ch == 0:
                 ax[ch] = host_subplot(111, axes_class=aa.Axes)
                 ax[ch].set_xlabel("Time (sec)")
             else:
                 ax[ch] = ax[0].twinx()
             ax[ch].set_ylabel("%s Units: %s" % (dso.ch_list[ch], dso.vunit[ch]))
             ch_color = ch_colortable[int(dso.ch_list[ch][2]) - 1]
-            if (ch > 1):
+            if ch > 1:
                 new_fixed_axis = ax[ch].get_grid_helper().new_fixed_axis
                 ax[ch].axis["right"] = new_fixed_axis(loc="right", axes=ax[ch], offset=(60 * (ch - 1), 0))
             ax[ch].set_xlim(t_start, t_end)
             ax[ch].set_ylim(-4 * dso.vdiv[ch] - dso.vpos[ch],
                             4 * dso.vdiv[ch] - dso.vpos[ch])  # Setup vertical display range.
             fwave = dso.convertWaveform(ch, down_sample_factor)
-            # print('Length=%d'%(len(fwave)))
-            if (ch == 0):
+            if ch == 0:
                 try:
                     p = ax[ch].plot(t, fwave, color=ch_color, ls=wave_type, label=dso.ch_list[ch])
-                except:
-                    if (mode == 1):
+                except:  # TODO: find and fix exception type
+                    if mode == 1:
                         # print sys.exc_info()[0]
                         time.sleep(5)
-                        print
-                        'Trying to plot again!',
+                        print('Trying to plot again!')
                     return -1
             else:
                 try:
                     p += ax[ch].plot(t, fwave, color=ch_color, ls=wave_type, label=dso.ch_list[ch])
-                except:
-                    if (mode == 1):
+                except:  # TODO: find and fix exception type
+                    if mode == 1:
                         # print sys.exc_info()[0]
                         time.sleep(5)
-                        print
-                        'Trying to plot again!',
+                        print('Trying to plot again!')
                     return -1
-        if (total_chnum > 1):
-            labs = [l.get_label() for l in p]
+        if total_chnum > 1:
+            labs = [c.get_label() for c in p]
             plt.legend(p, labs, loc='upper right')
         plt.tight_layout()
         self.canvas.draw()
@@ -505,17 +477,15 @@ class Window(QtGui.QWidget):
 
 if __name__ == '__main__':
 
-    f = open('license.txt', 'r')
-    print('-----------------------------------------------------------------------------');
-    print
-    f.read()
-    f.close()
-    print('-----------------------------------------------------------------------------');
+    print('-' * 77)
+    with open('license.txt', 'r') as lic_file:
+        lic_file.read()
+    print('-' * 77)
     print('OpenWave-2KE V%s\n' % __version__)
 
     # Get command line arguments.
     cmd = sys.argv[-1]
-    if ('OpenWave' in cmd):
+    if 'OpenWave' in cmd:
         cmd = ''
 
     # Check interface according to config file or command line argument.
@@ -524,7 +494,7 @@ if __name__ == '__main__':
     # Connecting to a DSO.
     dso = dso2ke.Dso(port)
 
-    app = QtGui.QApplication(sys.argv)
+    app = QtGui.QGuiApplication(sys.argv)
     main = Window()
     main.show()
     sys.exit(app.exec_())
