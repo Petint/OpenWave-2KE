@@ -36,7 +36,7 @@ Author: Kevin Meng, Petint
 
 import matplotlib.pyplot as plt
 import matplotlib as mpl
-from matplotlib.backends.backend_qt import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.backends.backend_qt import FigureCanvasQT as FigureCanvas
 from matplotlib.backends.backend_qt import NavigationToolbar2QT as NavigationToolbar
 from mpl_toolkits.axes_grid1 import host_subplot
 import mpl_toolkits.axisartist as aa

@@ -41,7 +41,7 @@ import time
 from struct import unpack
 
 import numpy as np
-from pillow import Image
+from PIL import Image
 
 from gw_com import Com
 from gw_lan import Lan
